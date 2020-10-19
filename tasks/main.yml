@@ -1,0 +1,37 @@
+---
+# tasks file for ansible-terragrunt
+
+- name: Create terragrunt directory
+  file: path=/opt/terragrunt state=directory mode="a+rw"
+
+- name: Get terragrunt
+  get_url:
+    url: https://github.com/gruntwork-io/terragrunt/releases/download/v{{ terragrunt_version }}/terragrunt_linux_amd64
+    dest: "/opt/terragrunt/terragrunt"
+    mode: 0755
+
+- name: Verify terragrunt exists
+  stat: path=/opt/terragrunt/terragrunt
+  register: terragrunt_stat
+
+- name: Configure terragrunt on system bin.
+  file:
+    src: "/opt/terragrunt/terragrunt"
+    dest: "/usr/bin/terragrunt"
+    state: link
+  when: terragrunt_stat.stat.exists
+
+- name: Configure terragrunt on system sbin.
+  file:
+    src: "/opt/terragrunt/terragrunt"
+    dest: "/usr/sbin/terragrunt"
+    state: link
+  when: terragrunt_stat.stat.exists
+
+- command: terragrunt -v
+  register: result_terragrunt
+  failed_when: false
+  changed_when: false
+
+- debug:
+    var: result_terragrunt.stdout
